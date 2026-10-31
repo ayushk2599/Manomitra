@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manomitra — Mental Health Companion</title>
+<style>
+:root {
+    --ink: #252c34;
+    --muted: #76828c;
+    --line: #e9eceb;
+    --cream: #f7f8f5;
+    --sage: #b9d5bd;
+    --deep: #557b63;
+    --coral: #e88f76;
+    --lav: #d8d8f0;
+    --white: #fff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font: 15px Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+button, input { font: inherit; }
+button { cursor: pointer; border: 0; }
+
+.shell { max-width: 1220px; margin: auto; min-height: 100vh; display: flex; background: #fbfcfa; }
+.side { width: 235px; border-right: 1px solid var(--line); padding: 34px 22px; display: flex; flex-direction: column; }
+.brand { font-weight: 700; letter-spacing: .18em; font-size: 15px; margin-bottom: 58px; color: var(--deep); }
+.brand small { display: block; color: var(--muted); font-weight: 400; letter-spacing: .03em; margin-top: 7px; }
+
+.nav { display: flex; flex-direction: column; gap: 10px; }
+.nav button { background: none; color: var(--muted); padding: 12px 14px; text-align: left; border-radius: 12px; transition: all 0.2s; }
+.nav button.active, .nav button:hover { background: #edf4ed; color: var(--deep); font-weight: 650; }
+
+.person { margin-top: auto; display: flex; gap: 10px; align-items: center; padding: 12px 4px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: #e7b6a7; display: grid; place-items: center; font-weight: 700; color: white; }
+.person b { font-size: 13px; display: block; }
+.person span { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+
+.main { flex: 1; padding: 36px 46px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+.eyebrow { color: var(--deep); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.title { font-family: Georgia, serif; font-size: 37px; line-height: 1.1; margin: 8px 0; color: #27302d; }
+.date { color: var(--muted); }
+.logout { background: none; color: var(--muted); font-size: 13px; border: 1px solid var(--line); padding: 6px 12px; border-radius: 8px; }
+
+.grid { display: grid; grid-template-columns: 1.35fr .9fr; gap: 22px; }
+.card { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: 0 5px 20px #26352b05; }
+.hero { background: linear-gradient(120deg,#e9f1e8,#f6eee8); }
+.hero h2 { font: 25px Georgia, serif; margin: 0 0 8px; }
+.hero p { color: #66726d; margin: 0 0 20px; max-width: 480px; line-height: 1.6; }
+
+.btn { border-radius: 10px; background: var(--deep); color: white; padding: 11px 17px; font-weight: 650; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.9; }
+.btn.secondary { background: #edf3ee; color: var(--deep); }
+
+.score { display: flex; align-items: center; gap: 20px; }
+.ring { width: 116px; height: 116px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--deep) 0% 0%, #edf1ed 0% 100%); position: relative; }
+.ring:after { content: ""; width: 91px; height: 91px; border-radius: 50%; background: white; position: absolute; }
+.ring strong { position: relative; z-index: 1; font-size: 28px; }
+.score h3 { margin: 0 0 5px; font-family: Georgia, serif; font-size: 20px; }
+.score p { margin: 0; color: var(--muted); line-height: 1.5; font-size: 13px; }
+
+.bar { height: 10px; background: #edf0ed; border-radius: 10px; overflow: hidden; margin: 18px 0 8px; }
+.bar i { display: block; width: 0%; height: 100%; background: var(--deep); border-radius: inherit; transition: width 0.8s ease; }
+.smallrow { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+
+.section-title { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 13px; }
+.section-title h2 { font: 22px Georgia, serif; margin: 0; }
+.section-title a { color: var(--deep); font-size: 13px; text-decoration: none; }
+
+.recommendations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.rec { padding: 16px; border-radius: 15px; min-height: 154px; display: flex; flex-direction: column; justify-content: space-between; }
+.rec.book { background: #f1e8dd; }
+.rec.movie { background: #e9e9f6; }
+.rec.song { background: #e4f0e5; }
+.tag { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #778077; }
+.rec h3 { font: 18px Georgia, serif; margin: 15px 0 5px; }
+.rec p { font-size: 12px; color: var(--muted); line-height: 1.4; margin: 0; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+.question { padding: 19px 0; border-bottom: 1px solid var(--line); }
+.question p { margin: 0 0 12px; font-weight: 650; }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices label { border: 1px solid var(--line); padding: 9px 12px; border-radius: 10px; color: var(--muted); font-size: 13px; cursor: pointer; }
+.choices label:has(input:checked) { background: #edf4ed; color: var(--deep); border-color: var(--sage); font-weight: 600; }
+.choices input { accent-color: var(--deep); }
+
+.chat { height: 420px; display: flex; flex-direction: column; }
+.messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; padding: 6px 0; }
+.msg { max-width: 84%; padding: 11px 13px; border-radius: 14px; line-height: 1.45; font-size: 13px; }
+.bot { background: #edf4ed; align-self: flex-start; color: var(--ink); }
+.me { background: #f1e8dd; align-self: flex-end; color: var(--ink); }
+.composer { display: flex; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.composer input { min-width: 0; flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; outline: none; }
+
+.login { position: fixed; inset: 0; background: rgba(246,248,244,.98); display: grid; place-items: center; z-index: 500; }
+.login.hide { display: none; }
+.loginbox { width: min(410px, calc(100% - 36px)); background: white; border: 1px solid var(--line); border-radius: 22px; padding: 32px; box-shadow: 0 14px 45px #26352b12; }
+.loginbox h1 { font: 31px Georgia, serif; margin: 0 0 8px; }
+.loginbox p { color: var(--muted); line-height: 1.5; margin: 0 0 24px; }
+.loginbox label { display: block; color: var(--muted); font-size: 12px; margin: 15px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.loginbox input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; }
+.loginbox .btn { width: 100%; margin-top: 20px; }
+.loginbox .note { text-align: center; font-size: 12px; margin-top: 16px; color: var(--muted); }
+.toggle-auth { text-align: center; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.toggle-auth span { color: var(--deep); font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+.breath-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; text-align: center; }
+.breath-circle { width: 140px; height: 140px; border-radius: 50%; background: #edf4ed; border: 2px solid var(--sage); display: grid; place-items: center; font-family: Georgia, serif; font-size: 18px; color: var(--deep); transition: transform 4s ease-in-out; margin-bottom: 24px; }
+.breath-circle.inhale { transform: scale(1.4); background: #d8e6da; }
+.breath-circle.hold { transform: scale(1.4); background: #d8e6da; }
+.breath-circle.exhale { transform: scale(1); background: #edf4ed; }
+
+@media(max-width:850px) {
+    .side { width: 72px; padding: 24px 10px; }
+    .brand { font-size: 0; text-align: center; }
+    .brand:before { content: 'M'; font-size: 20px; color: var(--deep); }
+    .brand small, .nav button span, .person div { display: none; }
+    .nav button { text-align: center; }
+    .person { justify-content: center; }
+    .main { padding: 28px 20px; }
+    .grid { grid-template-columns: 1fr; }
+    .recommendations { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginGate">
+    <form class="loginbox" id="loginForm" onsubmit="handleAuth(event, 'login')">
+        <div class="eyebrow">MANOMITRA</div>
+        <h1>A gentler check-in.</h1>
+        <p>Sign in to track your cumulative daily reflections, wellbeing score, and supportive resources.</p>
+        
+        <label for="login-email">Email address</label>
+        <input id="login-email" type="email" placeholder="you@example.com" required>
+        
+        <label for="login-pass">Password</label>
+        <input id="login-pass" type="password" placeholder="At least 6 characters" minlength="6" required>
+        
+        <button class="btn" type="submit">Enter Space</button>
+        <div class="toggle-auth">New here? <span onclick="switchAuth('signup')">Create an account</span></div>
+    </form>
+
+    <form class="loginbox" id="signupForm" style="display:none;" onsubmit="handleAuth(event, 'signup')">
+        <div class="eyebrow">MANOMITRA</div>
+        <h1>Create your refuge.</h1>
+        <p>Start keeping track of your personal wellbeing journey securely.</p>
+        
+        <label for="signup-name">Your Name</label>
+        <input id="signup-name" type="text" placeholder="What should we call you?" required>
+        
+        <label for="signup-email">Email address</label>
+        <input id="signup-email" type="email" placeholder="you@example.com" required>
+        
+        <label for="signup-pass">Password</label>
+        <input id="signup-pass" type="password" placeholder="At least 6 characters" minlength="6" required>
+        
+        <button class="btn" type="submit">Create Account & Enter</button>
+        <div class="toggle-auth">Already registered? <span onclick="switchAuth('login')">Sign in</span></div>
+    </form>
+</div>
+
+<div class="shell">
+    <aside class="side">
+        <div class="brand">MANOMITRA<small>your daily companion</small></div>
+        <nav class="nav">
+            <button class="active" onclick="switchNav('home', this)">⌂ <span>Overview</span></button>
+            <button onclick="switchNav('survey', this)">◷ <span>Daily check-in</span></button>
+            <button onclick="switchNav('chat', this)">○ <span>Talk to Companion</span></button>
+            <button onclick="switchNav('resources', this)">▱ <span>Resources & Sound</span></button>
+        </nav>
+        <div class="person">
+            <div class="avatar" id="user-avatar">M</div>
+            <div>
+                <b id="user-display-name">User</b>
+                <span>Taking it gently</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="top">
+            <div>
+                <div class="eyebrow" id="today-date">Today</div>
+                <h1 class="title">Good day, <span id="welcome-name">Friend</span>.</h1>
+                <div class="date">A small check-in can make room for a better day.</div>
+            </div>
+            <button class="logout" onclick="signOut()">Sign out</button>
+        </div>
+
+        <section id="home" class="view active">
+            <div class="grid">
+                <div class="card hero">
+                    <h2>How are you arriving today?</h2>
+                    <p>You do not have to have all the right words. Just a few honest answers are enough to help notice what you need.</p>
+                    <button class="btn" onclick="switchNav('survey', document.querySelectorAll('.nav button')[1])" id="hero-btn">Start daily check-in</button>
+                </div>
+                
+                <div class="card">
+                    <div class="eyebrow">Your wellbeing</div>
+                    <div class="score" style="margin-top: 15px;">
+                        <div class="ring" id="score-ring"><strong id="score-val">0</strong></div>
+                        <div>
+                            <h3 id="scoreLabel">Initializing</h3>
+                            <p id="tracker-status">Take a survey check-in to initialize tracking.</p>
+                        </div>
+                    </div>
+                    <div class="bar"><i id="bar-fill"></i></div>
+                    <div class="smallrow"><span>Needs care</span><span>Thriving</span></div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h2>Grounding & Resources</h2>
+                <a href="#" onclick="switchNav('resources', document.querySelectorAll('.nav button')[3]); return false;">View all resources</a>
+            </div>
+
+            <div class="recommendations">
+                <article class="rec book">
+                    <div>
+                        <span class="tag">Book · Grounding Read</span>
+                        <h3>The Comfort Book</h3>
+                    </div>
+                    <p>Matt Haig — Small reminders for difficult days.</p>
+                </article>
+                <article class="rec movie">
+                    <div>
+                        <span class="tag">Film · Gentle Watch</span>
+                        <h3>Good Will Hunting</h3>
+                    </div>
+                    <p>1997 — Healing happens through genuine human connection.</p>
+                </article>
+                <article class="rec song">
+                    <div>
+                        <span class="tag">Soundscape · 174 Hz Tone</span>
+                        <h3>Calming Soundscape</h3>
+                    </div>
+                    <button class="btn secondary" id="audio-btn-home" onclick="toggleAudio()" style="margin-top: 10px; width: 100%;">▶ Play Ambient Tone</button>
+                </article>
+            </div>
+        </section>
+
+        <section id="survey" class="view">
+            <div class="card">
+                <div class="eyebrow">Daily check-in</div>
+                <h2 class="title" style="font-size:30px">A moment with yourself.</h2>
+                <p style="color:var(--muted); margin-bottom: 20px;">Choose the answer that feels closest to your state today. Editable until midnight.</p>
+                <form id="surveyForm" onsubmit="submitSurvey(event)">
+                    <div id="survey-questions"></div>
+                    <button class="btn" type="submit" style="margin-top: 20px;">Update my wellbeing score</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="chat" class="view">
+            <div class="card chat">
+                <div class="eyebrow">Talk to Companion</div>
+                <h2 style="font:25px Georgia,serif; margin:7px 0 15px">You can bring anything here.</h2>
+                <div class="messages" id="chat-messages">
+                    <div class="msg bot">Hello. I am here with you. What feels most present right now?</div>
+                </div>
+                <form class="composer" onsubmit="sendChat(event)">
+                    <input id="chat-input" placeholder="Write what’s on your mind…" aria-label="Message Companion">
+                    <button class="btn" type="submit">Send</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="resources" class="view">
+            <div class="card" style="margin-bottom: 22px;">
+                <div class="eyebrow">Audio Soundscape</div>
+                <h2 style="font:25px Georgia,serif; margin:7px 0">174 Hz Solfeggio Tone</h2>
+                <p style="color:var(--muted); margin-bottom: 15px;">A low frequency resonant wave engineered for physical relaxation and tension relief.</p>
+                <button class="btn" id="audio-btn-page" onclick="toggleAudio()">▶ Play 174Hz Soundscape</button>
+            </div>
+
+            <div class="card" style="margin-bottom: 22px;">
+                <div class="eyebrow">Breathing Exercise</div>
+                <h2 style="font:25px Georgia,serif; margin:7px 0">Box Breathing (4-4-4)</h2>
+                <div class="breath-wrapper">
+                    <div class="breath-circle" id="breath-circle">Start</div>
+                    <button class="btn secondary" id="breath-btn" onclick="toggleBreathing()">Begin Exercise</button>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    let activeScore = 0;
+    const surveyQs = [
+        "How rested do you feel after sleep?",
+        "Did you feel overwhelmed by stress today?",
+        "How was your overall mood during the day?",
+        "Were you able to focus on your daily tasks?",
+        "Did you feel physically energetic today?",
+        "How calm did you feel in demanding situations?",
+        "Did you connect or talk with someone today?",
+        "Did you take time for a break or relaxation?",
+        "How positive do you feel about tomorrow?",
+        "Rate your overall sense of well-being today."
+    ];
+
+    window.onload = async () => {
+        const now = new Date();
+        document.getElementById('today-date').innerText = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+        try {
+            const res = await fetch('/api/me');
+            const data = await res.json();
+            if (data.logged_in) {
+                showAppUI(data.name);
+            }
+        } catch(e) { console.log(e); }
+    };
+
+    function switchAuth(mode) {
+        document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+        document.getElementById('signupForm').style.display = mode === 'signup' ? 'block' : 'none';
+    }
+
+    async function handleAuth(e, mode) {
+        e.preventDefault();
+        const url = mode === 'signup' ? '/api/signup' : '/api/login';
+        const payload = mode === 'signup' ? {
+            name: document.getElementById('signup-name').value,
+            email: document.getElementById('signup-email').value,
+            password: document.getElementById('signup-pass').value
+        } : {
+            email: document.getElementById('login-email').value,
+            password: document.getElementById('login-pass').value
+        };
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                showAppUI(data.name);
+            } else {
+                alert(data.error || "Authentication failed.");
+            }
+        } catch {
+            alert("Server error. Please try again.");
+        }
+    }
+
+    function showAppUI(name) {
+        document.getElementById('loginGate').classList.add('hide');
+        document.getElementById('welcome-name').innerText = name;
+        document.getElementById('user-display-name').innerText = name;
+        document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
+        renderQuestions();
+        loadScore();
+    }
+
+    async function signOut() {
+        await fetch('/api/logout', { method: 'POST' });
+        document.getElementById('loginGate').classList.remove('hide');
+        activeScore = 0;
+        updateScoreUI(0, "Logged out");
+    }
+
+    function switchNav(targetId, btn) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(targetId).classList.add('active');
+        document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    function renderQuestions() {
+        const box = document.getElementById('survey-questions');
+        box.innerHTML = surveyQs.map((q, i) => `
+            <div class="question">
+                <p>${i + 1}. ${q}</p>
+                <div class="choices">
+                    <label><input type="radio" name="q${i}" value="20" required> Low</label>
+                    <label><input type="radio" name="q${i}" value="50"> Moderate</label>
+                    <label><input type="radio" name="q${i}" value="80"> Good</label>
+                    <label><input type="radio" name="q${i}" value="100"> Great</label>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function submitSurvey(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const answersObj = {};
+        const vals = [];
+
+        for (let i = 0; i < 10; i++) {
+            const rawVal = formData.get(`q${i}`);
+            const val = rawVal ? Number(rawVal) : 50;
+            answersObj[i] = val;
+            vals.push(val);
+        }
+
+        const calculatedScore = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+
+        try {
+            const res = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wellbeing_score: calculatedScore, answers: answersObj })
+            });
+            const data = await res.json();
+            
+            let finalScore = calculatedScore;
+            if (data.score !== undefined && data.score !== null && Number(data.score) > 0) {
+                finalScore = Number(data.score);
+            }
+            
+            activeScore = finalScore;
+            updateScoreUI(finalScore, "Assessment complete!");
+            switchNav('home', document.querySelectorAll('.nav button')[0]);
+        } catch(err) {
+            console.log(err);
+        }
+        loadScore();
+    }
+
+    async function loadScore() {
+        try {
+            const res = await fetch('/daily-score');
+            const data = await res.json();
+            
+            if (data.score !== undefined && data.score !== null && Number(data.score) > 0) {
+                activeScore = Number(data.score);
+                updateScoreUI(activeScore, data.status);
+            } else if (activeScore > 0) {
+                updateScoreUI(activeScore, "Active Session Score");
+            } else {
+                updateScoreUI(0, "Take a check-in to initialize tracking.");
+            }
+
+            const heroBtn = document.getElementById('hero-btn');
+            if (data.has_taken_today) {
+                heroBtn.innerText = "Edit today's check-in";
+            } else {
+                heroBtn.innerText = "Start daily check-in";
+            }
+        } catch {
+            if (activeScore > 0) {
+                updateScoreUI(activeScore, "Active Session Score");
+            } else {
+                updateScoreUI(0, "Take a check-in to initialize tracking.");
+            }
+        }
+    }
+
+    function updateScoreUI(score, statusMsg) {
+        const val = Number(score) || 0;
+        document.getElementById('score-val').innerText = val;
+        document.getElementById('bar-fill').style.width = val + '%';
+        document.getElementById('score-ring').style.background = `conic-gradient(var(--deep) 0% ${val}%, #edf1ed ${val}% 100%)`;
+        
+        let label = "Room to breathe";
+        if (val === 0) label = "Unset";
+        else if (val > 72) label = "Steady & growing";
+        else if (val <= 40) label = "Needs extra care";
+        
+        document.getElementById('scoreLabel').innerText = label;
+        if (statusMsg) document.getElementById('tracker-status').innerText = statusMsg;
+    }
+
+    let audioCtx = null, oscillator = null;
+    function toggleAudio() {
+        const btnHome = document.getElementById('audio-btn-home');
+        const btnPage = document.getElementById('audio-btn-page');
+
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        if (oscillator) {
+            oscillator.stop();
+            oscillator = null;
+            btnHome.innerText = "▶ Play Ambient Tone";
+            btnPage.innerText = "▶ Play 174Hz Soundscape";
+        } else {
+            oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(174, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            
+            btnHome.innerText = "⏸ Pause Soundscape";
+            btnPage.innerText = "⏸ Pause Soundscape";
+        }
+    }
+
+    async function sendChat(e) {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const box = document.getElementById('chat-messages');
+        const text = input.value.trim();
+        if (!text) return;
+
+        box.innerHTML += `<div class="msg me">${text.replace(/[<>]/g,'')}</div>`;
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
+
+        try {
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            box.innerHTML += `<div class="msg bot">${data.reply || "I am here with you."}</div>`;
+            box.scrollTop = box.scrollHeight;
+        } catch {
+            box.innerHTML += `<div class="msg bot">Server error. Take a slow breath and try again.</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+    }
+
+    let breathing = false, breathTimer;
+    function toggleBreathing() {
+        const btn = document.getElementById('breath-btn');
+        const circle = document.getElementById('breath-circle');
+        if (breathing) {
+            clearInterval(breathTimer); breathing = false;
+            btn.innerText = "Begin Exercise"; circle.innerText = "Start"; circle.className = "breath-circle";
+        } else {
+            breathing = true; btn.innerText = "Stop Exercise"; runBreath();
+            breathTimer = setInterval(runBreath, 12000);
+        }
+    }
+    function runBreath() {
+        const circle = document.getElementById('breath-circle');
+        circle.innerText = "Inhale"; circle.className = "breath-circle inhale";
+        setTimeout(() => { if (breathing) { circle.innerText = "Hold"; circle.className = "breath-circle hold"; }}, 4000);
+        setTimeout(() => { if (breathing) { circle.innerText = "Exhale"; circle.className = "breath-circle exhale"; }}, 8000);
+    }
+</script>
+</body>
+</html>
